@@ -1,0 +1,234 @@
+<script lang="ts">
+export default {
+  data() {
+    return {
+        dailyPrompts: [],
+        activePrompts: [],
+        topUsers: [],
+        marathonPrompts: [],
+        timeLeft: "",
+        username: "Test",
+        loggedIn: null,
+
+        streakText: '',
+
+        lobbies: [],
+
+        isMobile: false,
+    }
+  }
+};
+</script>
+
+<template>
+    <div>
+        <h3 class="mb-4">Welcome<span v-cloak v-if="username"> back</span> to Wikipedia Speedruns<span  v-cloak v-if="username">, {{username}}</span>! <a href="/about#beta"><span class="beta">BETA*</span></a></h3>
+
+        <div class="alert alert-warning" v-cloak role="alert" v-html="streakText" v-if="loggedIn && streakText"></div>
+
+        <p>The rules of this game are simple. You'll be given a starting Wikipedia article and an ending Wikipedia article. Your goal is to navigate from the starting article to the ending article using only the article links.</p>
+        <p>Some other things to keep in mind:</p>
+        <ul>
+            <li>Any link (outside the navigation bar at the top) is fair game.</li>
+            <li>You can't use the browser find tool.</li>
+            <li>Reloading the page or clicking the browser back button will end your run.</li>
+        </ul>
+        <p>Remember, luck is king, so put on your lucky hat, grab your lucky socks, and let the games begin!</p>
+        <p>First time? Play the <a href="/play/tutorial">tutorial</a>!</p>
+
+        <p>Try our new prompt generator <a href="/generator">here</a>!</p>
+    </div>
+
+    <hr class="my-4">
+
+    <!-- sidebar, which will move to the top on a small screen -->
+    <div class="col-sm-3">
+        <nav id="toc" data-toggle="toc" class="sticky-top"></nav>
+    </div>
+    <!-- main content area -->
+    <div class="col-sm-9">
+        <div class="card">
+            <div class="alert alert-info my-0" role="alert">
+                <h5 class="my-0">Prompt of the day</h5>
+                <template v-if="loggedIn === true">
+                    Play today’s prompt to build your streak! 🔥
+                </template>
+                <template v-else>
+                    <b><a href="/login" class="no-color">Log in</a></b> to play today’s prompt and start your streak! 🔥
+                </template>
+            </div>
+            <div class="card-body table-responsive">
+                <template v-if="dailyPrompts.length > 0">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Prompt #</th>
+                                <th scope="col">Starting Article</th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="prompt in dailyPrompts" v-cloak>
+                                <td>{{prompt.prompt_id}} <span v-if="loggedIn"> (<a v-bind:href="'/play/' + prompt.prompt_id">play</a>)</span></td>
+
+                                <td>{{prompt.start}}</td>
+
+                                <td class="text-center">
+                                    <template v-if="prompt.played">
+                                        <a v-bind:href="'/leaderboard/' + prompt.prompt_id">Results</a>
+                                    </template>
+                                    <template v-else>
+                                        <span title="Play to see results" style="cursor: help;">-</span>
+                                    </template>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
+                <template v-else>
+                    Don’t see anything? Shoot us a message on <a href="https://discord.gg/mNYeB9c9db" target="_blank">Discord</a> or via <a href="mailto:support@wikispeedruns.com">email</a> and we’ll fix that right away!
+                </template>
+            </div>
+            <div v-cloak class="card-footer text-muted" v-if="dailyPrompts.length > 0 && timeLeft">
+                New prompt in T-{{timeLeft}}
+            </div>
+
+        </div>
+
+        <hr class="my-4">
+
+        <div class="card">
+            <div class="alert alert-info my-0" role="alert">
+                <h5 class="my-0">Editors' picks</h5>
+                Test your limits with this week’s selection of handpicked prompts.
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Prompt #</th>
+                            <th scope="col">Starting Article</th>
+                            <th class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="prompt in activePrompts" v-cloak>
+                            <td>
+                                {{prompt.prompt_id}} (<a v-bind:href="'/play/' + prompt.prompt_id">play</a>)
+                            </td>
+                            <td>{{prompt.start}}</td>
+                            <td class="text-center">
+                                <template v-if="prompt.played">
+                                    <a v-bind:href="'/leaderboard/' + prompt.prompt_id">Results</a>
+                                </template>
+                                <template v-else>
+                                    <span title="Play to see results" style="cursor: help;">-</span>
+                                </template>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted">
+                Feeling lucky? Try a <b><a href="/random" class="no-color">random prompt</a></b>. Or check out our <b><a href="/archive" class="no-color">archive</a></b>.
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <marathon-prompts v-bind:prompts="marathonPrompts" v-bind:username="username"></marathon-prompts>
+
+        <hr class="my-4">
+
+        <div class="card" id="user-lobbies">
+            <div class="alert alert-info my-0" role="alert">
+                <h5 class="my-0">Party mode</h5>
+                Play with friends—anytime, anywhere!
+                <template v-if="loggedIn === false">
+                    <b><a href="/login" class="no-color">Log in</a></b> to create a new private lobby.
+                </template>
+                <template v-else>
+                    Create a <b><a href="/lobby/create" class="no-color">new private lobby</a></b>. Or join an existing one.
+                </template>
+            </div>
+            <div class="card-body table-responsive" v-if="loggedIn === true">
+                <template v-if="lobbies.length > 0">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Date Created</th>
+                                <th scope="col"># of Prompts</th>
+                                <th scope="col">Owner</th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="lobby in lobbies" v-cloak>
+                                <td>
+                                    <a v-bind:href="'/lobby/' + lobby.lobby_id">
+                                        <template v-if="lobby.name">{{lobby.name}}</template><template v-else>Lobby {{lobby.lobby_id}}</template>
+                                    </a>
+                                    <span v-if="lobby.desc" style="cursor: help;" :title="lobby.desc">ⓘ</span>
+                                </td>
+                                <!-- <td>{{getDate(lobby.create_date)}}</td> -->
+                                <td>{{lobby.n_prompts}}</td>
+                                <td  class="align-middle">
+                                    <span v-if="lobby.owner == 1"><i class="bi bi-check-lg"></i></span>
+                                    <span v-else>-</span>
+                                </td>
+                                <td class="text-center text-nowrap" >
+                                    <button v-bind:id="'custom-tooltip-'+lobby.lobby_id" v-on:click="copyInvite(lobby)" type="button" class="btn btn-default px-0 py-0" style="font-size: 12px !important">- Copy invite -</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
+                <template v-else>
+                    You don’t have any existing lobbies.
+                </template>
+            </div>
+            <div class="card-footer text-muted" v-if="loggedIn === true">
+                Copy the invite link and share it with your friends to get started.
+            </div>
+        </div>
+    </div>
+
+    <hr class="mt-4">
+
+    <div class="social-menu justify-content-center mb-3">
+        <a href="https://discord.gg/mNYeB9c9db" target="_blank">
+            <button type="button" class="btn">
+                <i class="bi bi-discord"></i>
+            </button>
+        </a>
+
+        <a href="https://twitter.com/WikiSpeedruns" target="_blank">
+            <button type="button" class="btn">
+                <i class="bi bi-twitter"></i>
+            </button>
+        </a>
+
+        <a href="https://github.com/wikispeedruns/wikipedia-speedruns" target="_blank">
+            <button type="button" class="btn">
+                <i class="bi bi-github"></i>
+            </button>
+        </a>
+
+        <a class="custom-dbox-popup" href="https://donorbox.org/buy-us-a-coffee-9">
+            <button type="button" class="btn">
+                <i class="bi bi-box2-heart-fill"></i>
+            </button>
+        </a>
+
+        <a href="mailto:support@wikispeedruns.com" target="_blank">
+            <button type="button" class="btn">
+                <i class="bi bi-envelope-fill"></i>
+            </button>
+        </a>
+    </div>
+</template>
+
+<style scoped>
+
+</style>
