@@ -37,9 +37,13 @@
 
 <div class="row" id="app">
     <div>
-        <h3 class="mb-4">Welcome<span v-cloak v-if="username"> back</span> to Wikipedia Speedruns<span  v-cloak v-if="username">, [[username]]</span>! <a href="/about#beta"><span class="beta">BETA*</span></a></h3>
+        <h3 class="mb-4">Welcome<span v-cloak v-if="username"> back</span> to Wikipedia Speedruns<span  v-cloak v-if="username">, [[username]]</span>!</h3>
 
         <div class="alert alert-warning" v-cloak role="alert" v-html="streakText" v-if="loggedIn && streakText"></div>
+        
+        <div class="alert alert-info" v-cloak role="alert" v-if="loggedIn">
+            We've just added <b>achievements</b> to the game! Visit your profile page <a v-bind:href="'/profile/' + username">here</a> to check your current progress. 
+        </div>
 
         <p>The rules of this game are simple. You'll be given a starting Wikipedia article and an ending Wikipedia article. Your goal is to navigate from the starting article to the ending article using only the article links.</p>
         <p>Some other things to keep in mind:</p>
@@ -64,7 +68,7 @@
     <div class="col-sm-9">
         <div class="card">
             <div class="alert alert-info my-0" role="alert">
-                <h5 class="my-0">Prompt of the day</h5>
+                <h5 class="my-0">Prompt of the Day</h5>
                 <template v-if="loggedIn === true">
                     Play today’s prompt to build your streak! 🔥
                 </template>
@@ -114,8 +118,8 @@
 
         <div class="card">
             <div class="alert alert-info my-0" role="alert">
-                <h5 class="my-0">Editors' picks</h5>
-                Test your limits with this week’s selection of handpicked prompts.
+                <h5 class="my-0">Training Mode</h5>
+                Can’t wait for tomorrow? Have a go at some of our classics.
             </div>
             <div class="card-body table-responsive">
                 <table class="table table-hover">
@@ -157,7 +161,7 @@
 
         <div class="card" id="user-lobbies">
             <div class="alert alert-info my-0" role="alert">
-                <h5 class="my-0">Party mode</h5>
+                <h5 class="my-0">Party Mode</h5>
                 Play with friends—anytime, anywhere!
                 <template v-if="loggedIn === false">
                     <b><a href="/login" class="no-color">Log in</a></b> to create a new private lobby.
